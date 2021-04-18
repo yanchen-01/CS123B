@@ -13,24 +13,26 @@ public class AnalyzeData {
     private static final Map<String, Double> test_diff = new HashMap<>();
     private static final String B = "basic_data";
     private static final String R = "related_data";
+    private static int length;
     private static double min;
     private static double max;
 
     public static void main(String[] args) throws IOException {
-        printLength(B, getAverageLength(B));
         System.out.println("------Training HMM using basic data------");
+        // Print the average length before alignment
+        printLength(B, "before", (int)getAverageLength(B));
         String output = getOutput(B);
-        // Get the values from the output and put them in a map
         setMaps(output);
-        // Print the result for base data HMM
+        // Print the length after alignment
+        printLength(B, "after", length);
         printResult(B);
 
         System.out.println("\n=================\n");
-        printLength(R, getAverageLength(R));
         System.out.println("------Training HMM using related data------");
+        printLength(R, "before", (int)getAverageLength(R));
         output = getOutput(R);
         setMaps(output);
-        // Print the result for related data HMM
+        printLength(R, "after", length);
         printResult(R);
     }
 
@@ -54,8 +56,10 @@ public class AnalyzeData {
         return 1.0 * total_length / num_of_sequences;
     }
 
-    private static void printLength(String data, double length) {
-        System.out.printf("The average length of %s before alignment is %.2f\n", data, length);
+    private static void printLength(String data, String status, int length) {
+        String avg = status.equals("after")? "":" average";
+        System.out.printf("The%s length of %s %s alignment is %d\n",
+                avg, data, status, length);
     }
 
     private static String getOutput(String filename) throws IOException {
@@ -93,6 +97,11 @@ public class AnalyzeData {
             String key = lines[i];
             key = key.replace("*******  >", "");
 
+            // Also get the length of the aligned sequence
+            if((i == 0 || i == 1) && lines[i].contains("=")){
+                String l = lines[i].substring(lines[i].indexOf("=") + 1);
+                length = Integer.parseInt(l);
+            }
             String valueString = lines[i + 1];
             valueString = valueString.replace(" .. score = ", "");
 
